@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowLeft, 
@@ -12,15 +12,51 @@ import {
   Send,
   CheckCircle2,
   XCircle,
-  Trophy
+  Trophy,
+  ExternalLink,
+  Loader2,
+  FileBox
 } from 'lucide-react';
+import { db } from '../firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export default function ChapterDetail() {
   const { id, subjectId, chapterId } = useParams();
-  const [activeTab, setActiveTab] = useState<'notes' | 'video' | 'quiz'>('video');
+  const [resources, setResources] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'resources' | 'quiz'>('resources');
   const [quizStep, setQuizStep] = useState(0);
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+
+  const decodedChapterName = decodeURIComponent(chapterId || '');
+
+  useEffect(() => {
+    const fetchResources = async () => {
+      setLoading(true);
+      try {
+        const q = query(
+          collection(db, 'resources'),
+          where('classLevel', '==', id),
+          where('subject', '==', subjectId),
+          where('chapterName', '==', decodedChapterName)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        const docs = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setResources(docs);
+      } catch (error) {
+        console.error("Error fetching resources:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResources();
+  }, [id, subjectId, decodedChapterName]);
 
   const quizQuestions = [
     {
@@ -54,14 +90,8 @@ export default function ChapterDetail() {
           <div className="flex items-center justify-between h-14">
             <Link to={`/class/${id}/subject/${subjectId}`} className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-brand-red transition-colors">
               <ArrowLeft size={16} />
-              Back to Subject
+              Back to Chapters
             </Link>
-            <div className="flex items-center gap-4">
-              <button className="flex items-center gap-2 text-sm font-bold text-brand-red bg-red-50 dark:bg-red-900/20 px-4 py-1.5 rounded-full">
-                <Download size={14} />
-                Download PDF
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -73,20 +103,19 @@ export default function ChapterDetail() {
             {/* Chapter Title */}
             <div>
               <div className="flex items-center gap-2 text-xs font-bold text-brand-red uppercase tracking-widest mb-2">
-                <span>Chapter {chapterId}</span>
+                <span>Subject: {subjectId}</span>
                 <span className="w-1 h-1 rounded-full bg-slate-300" />
-                <span>30 Min Read</span>
+                <span>Resources Available</span>
               </div>
               <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                Fundamental Concepts & Principles
+                {decodedChapterName}
               </h1>
             </div>
 
             {/* Content Tabs */}
             <div className="flex border-b border-slate-200 dark:border-slate-800">
               {[
-                { id: 'video', label: 'Video Lesson', icon: Play },
-                { id: 'notes', label: 'Study Notes', icon: FileText },
+                { id: 'resources', label: 'Study Resources', icon: FileBox },
                 { id: 'quiz', label: 'Practice Quiz', icon: Trophy },
               ].map((tab) => (
                 <button
@@ -113,50 +142,60 @@ export default function ChapterDetail() {
             {/* Tab Content */}
             <div className="min-h-[400px]">
               <AnimatePresence mode="wait">
-                {activeTab === 'video' && (
+                {activeTab === 'resources' && (
                   <motion.div
-                    key="video"
+                    key="resources"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="aspect-video bg-slate-900 rounded-3xl overflow-hidden shadow-2xl relative group"
+                    className="space-y-6"
                   >
-                    <iframe 
-                      className="w-full h-full"
-                      src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
-                      title="YouTube video player" 
-                      frameBorder="0" 
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                      allowFullScreen
-                    ></iframe>
-                  </motion.div>
-                )}
-
-                {activeTab === 'notes' && (
-                  <motion.div
-                    key="notes"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm prose dark:prose-invert max-w-none"
-                  >
-                    <h2 className="text-2xl font-bold mb-6">Chapter Overview</h2>
-                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-6">
-                      In this chapter, we explore the core principles that govern our understanding of the subject. 
-                      We will look at historical developments, modern interpretations, and practical applications.
-                    </p>
-                    <h3 className="text-xl font-bold mb-4">1. Key Definitions</h3>
-                    <ul className="space-y-4 text-slate-600 dark:text-slate-400">
-                      <li><strong>Concept A:</strong> The primary building block of our theoretical framework.</li>
-                      <li><strong>Concept B:</strong> How we measure and observe these phenomena in real-world scenarios.</li>
-                      <li><strong>Concept C:</strong> The relationship between different variables in a controlled environment.</li>
-                    </ul>
-                    <div className="mt-12 p-6 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-100 dark:border-red-800">
-                      <h4 className="text-brand-red dark:text-brand-red font-bold mb-2">Pro Tip:</h4>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
-                        Always remember to cross-reference these notes with the video lecture for a more comprehensive understanding.
-                      </p>
-                    </div>
+                    {loading ? (
+                      <div className="flex flex-col items-center justify-center py-20 text-slate-400 space-y-4">
+                        <Loader2 className="animate-spin" size={40} />
+                        <p className="font-bold uppercase tracking-widest text-xs">Fetching materials...</p>
+                      </div>
+                    ) : resources.length > 0 ? (
+                      resources.map((res, i) => (
+                         <div key={res.id} className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                               <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-4">
+                                     <span className="bg-brand-red/10 text-brand-red px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                        Resource {i + 1}
+                                     </span>
+                                  </div>
+                                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium mb-6">
+                                     {res.instruction}
+                                  </p>
+                                  <a 
+                                    href={res.link} 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-2 text-brand-red font-black uppercase text-xs tracking-widest hover:underline"
+                                  >
+                                    Open Resource <ExternalLink size={14} />
+                                  </a>
+                               </div>
+                               <div className="w-full md:w-32 aspect-square bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-slate-300">
+                                  {res.link.includes('youtube') || res.link.includes('youtu.be') ? (
+                                    <Play size={40} className="text-brand-red/40" />
+                                  ) : (
+                                    <FileText size={40} className="text-brand-red/40" />
+                                  )}
+                               </div>
+                            </div>
+                         </div>
+                      ))
+                    ) : (
+                      <div className="bg-white dark:bg-slate-900 p-12 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-center">
+                        <FileBox className="mx-auto text-slate-200 mb-4" size={48} />
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">No Files Found</h3>
+                        <p className="text-slate-500 text-sm max-w-sm mx-auto">
+                           No resources have been linked to this chapter yet.
+                        </p>
+                      </div>
+                    )}
                   </motion.div>
                 )}
 
@@ -236,9 +275,6 @@ export default function ChapterDetail() {
                           >
                             Retake Quiz
                           </button>
-                          <button className="px-8 py-3 bg-brand-red text-white rounded-xl font-bold">
-                            Next Chapter
-                          </button>
                         </div>
                       </div>
                     )}
@@ -246,81 +282,11 @@ export default function ChapterDetail() {
                 )}
               </AnimatePresence>
             </div>
-
-            {/* Comments Section */}
-            <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
-              <div className="flex items-center gap-3 mb-8">
-                <MessageSquare className="text-brand-red" size={24} />
-                <h2 className="text-2xl font-bold">Doubts & Comments</h2>
-              </div>
-              
-              <div className="flex gap-4 mb-12">
-                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-brand-red font-bold shrink-0">
-                  U
-                </div>
-                <div className="flex-1 relative">
-                  <textarea 
-                    placeholder="Ask a doubt or share your thoughts..." 
-                    className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl outline-none focus:ring-2 focus:ring-brand-red transition-all min-h-[100px] text-slate-900 dark:text-white"
-                  />
-                  <button className="absolute bottom-3 right-3 bg-brand-red text-white p-2 rounded-xl shadow-lg">
-                    <Send size={20} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-8">
-                {[
-                  { user: 'Rahul K.', comment: 'Can you explain the relationship between Concept A and B again?', time: '2 hours ago' },
-                  { user: 'Sneha M.', comment: 'The practical examples really helped in understanding the theory. Thanks!', time: '5 hours ago' },
-                ].map((item, idx) => (
-                  <li key={idx} className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold shrink-0">
-                      {item.user[0]}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="font-bold text-sm text-slate-900 dark:text-white">{item.user}</span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.time}</span>
-                      </div>
-                      <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                        {item.comment}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-8">
-            <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Course Content</h3>
-              <div className="space-y-3">
-                {[1, 2, 3, 4, 5, 6].map((num) => (
-                  <Link
-                    key={num}
-                    to={`/class/${id}/subject/${subjectId}/chapter/${num}`}
-                    className={`flex items-center gap-4 p-3 rounded-xl transition-all ${
-                      num.toString() === chapterId 
-                        ? 'bg-red-50 dark:bg-red-900/30 text-brand-red border border-red-100 dark:border-red-800' 
-                        : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
-                    }`}
-                  >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
-                      num.toString() === chapterId ? 'bg-brand-red text-white' : 'bg-slate-100 dark:bg-slate-800'
-                    }`}>
-                      {num}
-                    </div>
-                    <span className="text-sm font-bold truncate">Chapter {num} Title</span>
-                    {num < parseInt(chapterId || '0') && <CheckCircle2 size={16} className="text-emerald-500 ml-auto" />}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden">
+             <div className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/20 rounded-full -mr-12 -mt-12" />
               <h3 className="text-xl font-bold mb-4 relative z-10">Study Group</h3>
               <p className="text-slate-400 text-sm mb-6 relative z-10">

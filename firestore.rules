@@ -18,10 +18,7 @@ service cloud.firestore {
 
     function isAdmin() {
       // For this app, we consider the specific admin email as admin
-      return isSignedIn() && (
-        request.auth.token.email == "teacherkalandi@gmail.com" && 
-        request.auth.token.email_verified == true
-      );
+      return isSignedIn() && request.auth.token.email == "teacherkalandi@gmail.com";
     }
 
     function isValidId(id) {

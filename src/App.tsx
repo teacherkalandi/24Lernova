@@ -21,6 +21,7 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/school-education" element={<SchoolEducation />} />
               <Route path="/competitive-exams" element={<CompetitiveExams />} />
+              <Route path="/competitive-exams/:id" element={<ClassPage />} />
               <Route path="/internal-portal" element={<InternalPortal />} />
               <Route path="/class/:id" element={<ClassPage />} />
               <Route path="/class/:id/subject/:subjectId" element={<SubjectPage />} />
