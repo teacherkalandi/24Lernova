@@ -1,5 +1,4 @@
 import Hero from '../components/Hero';
-import DashboardStats from '../components/DashboardStats';
 import { motion } from 'motion/react';
 import { 
   ArrowRight, 
@@ -14,12 +13,11 @@ import { Link } from 'react-router-dom';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <main className="min-h-screen bg-white">
       <Hero />
       
       {/* Main Selection Section */}
-      <section className="py-20 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full bg-brand-red/5 dark:bg-brand-red/10 -z-10" />
+      <section className="py-20 relative overflow-hidden bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-black text-brand-red dark:text-white mb-4 uppercase tracking-tight">
@@ -34,30 +32,22 @@ export default function Home() {
             {/* School Education Card */}
             <motion.div 
               whileHover={{ y: -10 }}
-              className="group relative bg-white dark:bg-slate-900 rounded-3xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-800"
+              className="group relative bg-brand-red text-white rounded-[2rem] shadow-2xl overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-red/10 rounded-bl-full -mr-16 -mt-16 transition-all group-hover:w-48 group-hover:h-48" />
+              <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-24 -mt-24 transition-all group-hover:scale-110" />
               <div className="p-8 md:p-12">
-                <div className="bg-brand-red/10 p-4 rounded-2xl w-fit mb-6">
-                  <BookOpen className="text-brand-red" size={40} />
+                <div className="bg-white/20 p-4 rounded-2xl w-fit mb-6 border border-white/20">
+                  <BookOpen className="text-brand-accent" size={40} />
                 </div>
-                <h3 className="text-2xl md:text-3xl font-black text-brand-red dark:text-white mb-4 uppercase">
+                <h3 className="text-2xl md:text-3xl font-black mb-4 uppercase">
                   School Education
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-8 font-medium leading-relaxed">
+                <p className="text-white/80 mb-8 font-medium leading-relaxed">
                   Comprehensive study materials, video lessons, and practice tests for students from Class 1 to 10. Master your school curriculum with ease.
                 </p>
-                <ul className="space-y-3 mb-10">
-                  {['Interactive Video Lessons', 'NCERT Solutions', 'Chapter-wise Notes', 'Mock Tests'].map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300">
-                      <CheckCircle2 size={18} className="text-brand-accent" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
                 <Link 
                   to="/school-education" 
-                  className="inline-flex items-center gap-2 bg-brand-red text-white px-8 py-4 rounded-xl font-black uppercase tracking-wider hover:bg-red-800 transition-all shadow-lg shadow-brand-red/20"
+                  className="inline-flex items-center gap-2 bg-brand-accent text-brand-red px-8 py-4 rounded-xl font-black uppercase tracking-wider hover:bg-white transition-all shadow-lg"
                 >
                   Explore Class 1-10
                   <ArrowRight size={20} />
@@ -68,30 +58,22 @@ export default function Home() {
             {/* Competitive Exams Card */}
             <motion.div 
               whileHover={{ y: -10 }}
-              className="group relative bg-white dark:bg-slate-900 rounded-3xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-800"
+              className="group relative bg-brand-accent text-brand-red rounded-[2rem] shadow-2xl overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-accent/10 rounded-bl-full -mr-16 -mt-16 transition-all group-hover:w-48 group-hover:h-48" />
+              <div className="absolute top-0 right-0 w-48 h-48 bg-brand-red/10 rounded-full -mr-24 -mt-24 transition-all group-hover:scale-110" />
               <div className="p-8 md:p-12">
-                <div className="bg-brand-accent/10 p-4 rounded-2xl w-fit mb-6">
-                  <Trophy className="text-brand-accent" size={40} />
+                <div className="bg-brand-red/10 p-4 rounded-2xl w-fit mb-6 border border-brand-red/10">
+                  <Trophy className="text-brand-red" size={40} />
                 </div>
-                <h3 className="text-2xl md:text-3xl font-black text-brand-accent dark:text-white mb-4 uppercase">
+                <h3 className="text-2xl md:text-3xl font-black mb-4 uppercase">
                   Competitive Exams
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-8 font-medium leading-relaxed">
+                <p className="text-brand-red/80 mb-8 font-medium leading-relaxed">
                   Specialized coaching and resources for JEE, NEET, Olympiads, and NTSE. Push your boundaries and achieve your dream career.
                 </p>
-                <ul className="space-y-3 mb-10">
-                  {['JEE & NEET Preparation', 'Olympiad Training', 'Scholarship Exams', 'Advanced Problem Sets'].map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300">
-                      <CheckCircle2 size={18} className="text-brand-red" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
                 <Link 
                   to="/competitive-exams" 
-                  className="inline-flex items-center gap-2 bg-brand-accent text-brand-red px-8 py-4 rounded-xl font-black uppercase tracking-wider hover:bg-white transition-all shadow-lg shadow-brand-accent/20"
+                  className="inline-flex items-center gap-2 bg-brand-red text-white px-8 py-4 rounded-xl font-black uppercase tracking-wider hover:bg-white hover:text-brand-red transition-all shadow-lg"
                 >
                   Explore Competitive
                   <ArrowRight size={20} />
@@ -102,8 +84,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      <DashboardStats />
 
       {/* Why Choose Us Section */}
       <section className="py-20 bg-white dark:bg-slate-900">

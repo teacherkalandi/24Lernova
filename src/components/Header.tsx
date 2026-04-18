@@ -58,8 +58,6 @@ export default function Header() {
         { name: 'NTSE/KVPY', path: '/competitive-exams/scholarships' },
       ]
     },
-    { name: 'Resources', path: '/resources', icon: FileText },
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Internal Portal', path: '/internal-portal', icon: FileText },
     { name: 'Contact Us', path: '/contact', icon: Phone },
   ];
@@ -94,25 +92,27 @@ export default function Header() {
       </div>
 
       {/* Main Branding Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <div className="bg-brand-red text-white p-3 rounded-xl font-black text-2xl shadow-lg">
-            24L
+      <div className="bg-brand-red border-b border-brand-accent/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div className="bg-brand-accent text-brand-red p-3 rounded-xl font-black text-2xl shadow-lg border-2 border-white/20">
+              24L
+            </div>
+            <div className="flex flex-col">
+              <h1 className="text-xl md:text-3xl font-black text-white leading-tight tracking-tighter">
+                24LERNOVA
+              </h1>
+              <p className="text-[10px] md:text-xs font-bold text-brand-accent uppercase tracking-[0.2em] -mt-1">
+                Empowering Future Leaders
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <h1 className="text-xl md:text-3xl font-black text-brand-red dark:text-white leading-tight tracking-tighter">
-              24LERNOVA
-            </h1>
-            <p className="text-[10px] md:text-xs font-bold text-brand-accent dark:text-brand-accent uppercase tracking-[0.2em] -mt-1">
-              Empowering Future Leaders
-            </p>
-          </div>
-        </div>
-        <div className="hidden lg:flex items-center gap-6">
-          <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
-            <User className="text-brand-red" size={20} />
-            <div className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase">
-              Student Login
+          <div className="hidden lg:flex items-center gap-6">
+            <div className="flex items-center gap-2 bg-white/10 p-2 rounded-lg border border-white/20">
+              <User className="text-brand-accent" size={20} />
+              <div className="text-[10px] font-bold text-white uppercase">
+                Student Login
+              </div>
             </div>
           </div>
         </div>

@@ -46,9 +46,9 @@ export default function ClassPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-white">
       {/* Page Header */}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pt-8 pb-12">
+      <div className="bg-slate-50 border-b border-slate-200 pt-8 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link to="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-brand-red font-semibold mb-8 transition-colors">
             <ArrowLeft size={20} />
@@ -89,21 +89,24 @@ export default function ClassPage() {
               >
                 <Link
                   to={`/class/${id}/subject/${subject.id}`}
-                  className="group block bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-brand-red transition-all shadow-sm hover:shadow-xl"
+                  className="group block bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-brand-red transition-all shadow-sm hover:shadow-xl overflow-hidden"
                 >
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="text-4xl">{subject.icon}</div>
-                    <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-brand-red group-hover:bg-red-50 transition-all">
-                      <ChevronRight size={24} />
+                  <div className={`h-2 ${subject.color}`} />
+                  <div className="p-8">
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="text-4xl">{subject.icon}</div>
+                      <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-brand-red group-hover:bg-red-50 transition-all">
+                        <ChevronRight size={24} />
+                      </div>
                     </div>
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{subject.name}</h3>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6">
-                    {subject.desc}
-                  </p>
-                  <div className="flex items-center gap-2 text-brand-red font-bold text-sm">
-                    <Book size={16} />
-                    <span>{subject.count} Resources Available</span>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{subject.name}</h3>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6">
+                      {subject.desc}
+                    </p>
+                    <div className="flex items-center gap-2 text-brand-red font-bold text-sm">
+                      <Book size={16} />
+                      <span>{subject.count} Resources Available</span>
+                    </div>
                   </div>
                 </Link>
               </motion.div>

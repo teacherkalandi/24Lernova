@@ -9,32 +9,32 @@ export default function CompetitiveExams() {
       name: 'JEE Mains & Advanced', 
       desc: 'Engineering entrance preparation with advanced physics, chemistry, and math.',
       icon: Target,
-      color: 'text-blue-500',
-      bg: 'bg-blue-500/10'
+      color: 'text-white',
+      bg: 'bg-gradient-to-br from-blue-600 to-indigo-700'
     },
     { 
       id: 'neet', 
       name: 'NEET UG', 
       desc: 'Medical entrance focus with detailed biology, chemistry, and physics.',
       icon: Award,
-      color: 'text-red-500',
-      bg: 'bg-red-500/10'
+      color: 'text-white',
+      bg: 'bg-gradient-to-br from-rose-600 to-red-700'
     },
     { 
       id: 'olympiads', 
       name: 'Olympiads', 
       desc: 'International level competition preparation for Math, Science, and English.',
       icon: Zap,
-      color: 'text-yellow-500',
-      bg: 'bg-yellow-500/10'
+      color: 'text-white',
+      bg: 'bg-gradient-to-br from-amber-500 to-orange-600'
     },
     { 
       id: 'scholarships', 
       name: 'NTSE & KVPY', 
       desc: 'Scholarship exam preparation for high school students.',
       icon: Flame,
-      color: 'text-orange-500',
-      bg: 'bg-orange-500/10'
+      color: 'text-white',
+      bg: 'bg-gradient-to-br from-emerald-500 to-teal-600'
     },
   ];
 
@@ -60,19 +60,19 @@ export default function CompetitiveExams() {
             <motion.div
               key={exam.id}
               whileHover={{ y: -5 }}
-              className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl p-8 border border-slate-200 dark:border-slate-800 flex gap-6"
+              className={`rounded-3xl shadow-xl p-8 border border-white/10 flex gap-6 ${exam.bg}`}
             >
-              <div className={`${exam.bg} ${exam.color} p-6 rounded-2xl h-fit shrink-0`}>
+              <div className="bg-white/20 text-white p-6 rounded-2xl h-fit shrink-0 border border-white/20">
                 <exam.icon size={40} />
               </div>
               <div>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-3 uppercase">{exam.name}</h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-6 font-medium text-sm leading-relaxed">
+                <h3 className="text-2xl font-black text-white mb-3 uppercase">{exam.name}</h3>
+                <p className="text-white/80 mb-6 font-medium text-sm leading-relaxed">
                   {exam.desc}
                 </p>
                 <Link 
                   to={`/competitive-exams/${exam.id}`}
-                  className="inline-flex items-center gap-2 text-brand-red dark:text-brand-accent font-black uppercase text-xs tracking-wider hover:gap-4 transition-all"
+                  className="inline-flex items-center gap-2 text-brand-accent font-black uppercase text-xs tracking-wider hover:gap-4 transition-all"
                 >
                   Start Preparation
                   <ArrowRight size={16} />

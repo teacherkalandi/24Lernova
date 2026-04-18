@@ -4,16 +4,16 @@ import { Link } from 'react-router-dom';
 
 export default function SchoolEducation() {
   const classes = [
-    { id: '1', name: 'Class 1', subjects: 4, color: 'bg-blue-500' },
-    { id: '2', name: 'Class 2', subjects: 4, color: 'bg-green-500' },
-    { id: '3', name: 'Class 3', subjects: 5, color: 'bg-purple-500' },
-    { id: '4', name: 'Class 4', subjects: 5, color: 'bg-orange-500' },
-    { id: '5', name: 'Class 5', subjects: 5, color: 'bg-red-500' },
-    { id: '6', name: 'Class 6', subjects: 6, color: 'bg-indigo-500' },
-    { id: '7', name: 'Class 7', subjects: 6, color: 'bg-pink-500' },
-    { id: '8', name: 'Class 8', subjects: 6, color: 'bg-teal-500' },
-    { id: '9', name: 'Class 9', subjects: 7, color: 'bg-cyan-500' },
-    { id: '10', name: 'Class 10', subjects: 7, color: 'bg-violet-500' },
+    { id: '1', name: 'Class 1', subjects: 8, color: 'bg-rose-500', icon: '🎨' },
+    { id: '2', name: 'Class 2', subjects: 8, color: 'bg-sky-500', icon: '🎭' },
+    { id: '3', name: 'Class 3', subjects: 8, color: 'bg-amber-500', icon: '🚀' },
+    { id: '4', name: 'Class 4', subjects: 8, color: 'bg-emerald-500', icon: '🔬' },
+    { id: '5', name: 'Class 5', subjects: 8, color: 'bg-indigo-500', icon: '📚' },
+    { id: '6', name: 'Class 6', subjects: 8, color: 'bg-violet-500', icon: '🧩' },
+    { id: '7', name: 'Class 7', subjects: 8, color: 'bg-orange-500', icon: '🔍' },
+    { id: '8', name: 'Class 8', subjects: 8, color: 'bg-teal-500', icon: '🌍' },
+    { id: '9', name: 'Class 9', subjects: 8, color: 'bg-cyan-500', icon: '📐' },
+    { id: '10', name: 'Class 10', subjects: 8, color: 'bg-pink-500', icon: '🎓' },
   ];
 
   return (
@@ -21,7 +21,7 @@ export default function SchoolEducation() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12"
+      className="min-h-screen bg-white py-12"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-12">
@@ -42,8 +42,8 @@ export default function SchoolEducation() {
             >
               <div className={`${cls.color} h-2`} />
               <div className="p-6 flex flex-col flex-grow">
-                <div className="bg-slate-100 dark:bg-slate-800 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
-                  <BookOpen className="text-slate-600 dark:text-slate-400" size={24} />
+                <div className="bg-slate-100 dark:bg-slate-800 w-12 h-12 rounded-xl flex items-center justify-center mb-4 text-2xl">
+                  {cls.icon}
                 </div>
                 <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2 uppercase">{cls.name}</h3>
                 <p className="text-xs font-bold text-slate-500 uppercase mb-6">{cls.subjects} Subjects Available</p>
