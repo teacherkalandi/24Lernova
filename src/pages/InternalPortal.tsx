@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Save, Upload, Info, CheckCircle2, AlertCircle, LogIn, Lock, Trash2, ExternalLink, Search, Filter, Loader2 } from 'lucide-react';
-import { db, auth } from '../firebase';
+import { 
+  Save, Upload, Info, CheckCircle2, AlertCircle, LogIn, Lock, 
+  Trash2, ExternalLink, Search, Filter, Loader2, FileText, 
+  FileSpreadsheet, File as LucideFile, X, CloudUpload 
+} from 'lucide-react';
+import { db, auth, storage } from '../firebase';
 import { collection, addDoc, serverTimestamp, getDocs, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
 import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User } from 'firebase/auth';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 import { SUBJECTS_LIST, SCHOOL_CLASSES, COMPETITIVE_EXAMS } from '../constants';
 
@@ -17,9 +22,14 @@ export default function InternalPortal() {
   const [instruction, setInstruction] = useState('');
   const [link, setLink] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [resources, setResources] = useState<any[]>([]);
   const [loadingResources, setLoadingResources] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [driveToken, setDriveToken] = useState<string | null>(localStorage.getItem('driveToken'));
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchResources = async () => {
     setLoadingResources(true);
@@ -53,11 +63,111 @@ export default function InternalPortal() {
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/drive.file');
+    provider.setCustomParameters({
+      prompt: 'consent'
+    });
     try {
-      await signInWithPopup(auth, provider);
-    } catch (error) {
+      const result = await signInWithPopup(auth, provider);
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      if (credential?.accessToken) {
+        setDriveToken(credential.accessToken);
+        localStorage.setItem('driveToken', credential.accessToken);
+        setErrorMessage(null);
+      }
+    } catch (error: any) {
       console.error("Login failed: ", error);
+      setErrorMessage("Authentication failed: " + error.message);
     }
+  };
+
+  const uploadToDrive = async (file: File, token: string): Promise<string> => {
+    setUploadProgress(10);
+    const metadata = {
+      name: file.name,
+      mimeType: file.type,
+      parents: [] // Optionally specify a folder ID if needed
+    };
+
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', file);
+
+    setUploadProgress(30);
+    const uploadRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: form
+    });
+
+    const responseData = await uploadRes.json();
+
+    if (!uploadRes.ok) {
+      console.error("Drive upload failed details:", responseData);
+      
+      if (uploadRes.status === 401) {
+        localStorage.removeItem('driveToken');
+        setDriveToken(null);
+        throw new Error("Google Drive session expired. Please click 'Connect Drive' again.");
+      }
+      
+      const specificMsg = responseData.error?.message || "Check your Drive permissions.";
+      throw new Error(`Drive Upload Error: ${specificMsg}`);
+    }
+
+    const fileId = responseData.id;
+    setUploadProgress(70);
+
+    // Make file public (anyone with link can view)
+    await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        role: 'reader',
+        type: 'anyone'
+      })
+    });
+
+    // Get the webViewLink
+    const fileInfoRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?fields=webViewLink`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    const fileInfo = await fileInfoRes.json();
+    setUploadProgress(100);
+    return fileInfo.webViewLink;
+  };
+
+  const uploadFile = (file: File): Promise<string> => {
+    // If drive token is available, prefer Google Drive
+    if (driveToken) {
+      return uploadToDrive(file, driveToken);
+    }
+
+    // Fallback to Firebase Storage
+    return new Promise((resolve, reject) => {
+      const storageRef = ref(storage, `resources/${Date.now()}_${file.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress);
+        },
+        (error) => {
+          console.error("Upload failed:", error);
+          reject(error);
+        },
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          resolve(downloadURL);
+        }
+      );
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,27 +176,42 @@ export default function InternalPortal() {
     setStatus('loading');
 
     try {
+      let finalLink = link;
+
+      // If a local file is selected, upload it first
+      if (selectedFile) {
+        finalLink = await uploadFile(selectedFile);
+      }
+
       await addDoc(collection(db, 'resources'), {
         type,
         classLevel,
         subject,
         chapterName,
         instruction,
-        link,
+        link: finalLink,
+        fileName: selectedFile ? selectedFile.name : null,
+        fileType: selectedFile ? selectedFile.name.split('.').pop()?.toLowerCase() : 'url',
         createdAt: serverTimestamp(),
         authorEmail: currentUser?.email,
         authorUid: currentUser?.uid
       });
+
       setStatus('success');
       setChapterName('');
       setInstruction('');
       setLink('');
+      setSelectedFile(null);
+      setUploadProgress(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       setSubject(SUBJECTS_LIST[0].id);
       fetchResources();
       setTimeout(() => setStatus('idle'), 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding document: ", error);
       setStatus('error');
+      setErrorMessage(error.message || "Failed to save resource.");
+      setUploadProgress(null);
     }
   };
 
@@ -114,6 +239,18 @@ export default function InternalPortal() {
     res.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
     res.classLevel.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const getFileIcon = (type: string) => {
+    switch (type) {
+      case 'pdf': return <FileText className="text-rose-500" size={16} />;
+      case 'doc':
+      case 'docx': return <FileText className="text-blue-500" size={16} />;
+      case 'xls':
+      case 'xlsx':
+      case 'csv': return <FileSpreadsheet className="text-emerald-500" size={16} />;
+      default: return <LucideFile size={16} />;
+    }
+  };
 
   if (!currentUser) {
     return (
@@ -203,14 +340,14 @@ export default function InternalPortal() {
             <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-800 sticky top-24">
               <div className="p-8 border-b border-slate-100 dark:border-slate-800">
                 <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
-                  <Upload size={20} className="text-brand-red" />
-                  Upload Resource
+                  <CloudUpload size={20} className="text-brand-red" />
+                  Save Resources
                 </h2>
               </div>
               <form onSubmit={handleSubmit} className="p-8 space-y-6">
                 {/* Type Selection */}
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Type</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Category</label>
                   <div className="flex gap-2">
                     {['school', 'competitive'].map((t) => (
                       <button
@@ -267,12 +404,12 @@ export default function InternalPortal() {
 
                 {/* Chapter Name */}
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Chapter</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Chapter Name</label>
                   <input
                     type="text"
                     value={chapterName}
                     onChange={(e) => setChapterName(e.target.value)}
-                    placeholder="Chapter title..."
+                    placeholder="e.g. Chemical Bonding"
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-brand-red transition-all"
                     required
                   />
@@ -280,47 +417,172 @@ export default function InternalPortal() {
 
                 {/* Instruction */}
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Instruction</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Brief Instruction</label>
                   <textarea
                     value={instruction}
                     onChange={(e) => setInstruction(e.target.value)}
-                    placeholder="Describe content..."
-                    rows={3}
+                    placeholder="Notes or instructions..."
+                    rows={2}
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-brand-red transition-all resize-none"
                     required
                   />
                 </div>
 
-                {/* Link */}
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">URL</label>
-                  <input
-                    type="url"
-                    value={link}
-                    onChange={(e) => setLink(e.target.value)}
-                    placeholder="Resource link..."
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-brand-red transition-all"
-                    required
-                  />
+                {/* File Upload or Link */}
+                <div className="space-y-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">File Attachment (PDF, DOC, XLS, CSV)</label>
+                      {isAdmin && !driveToken && (
+                        <button
+                          type="button"
+                          onClick={handleLogin}
+                          className="text-[9px] font-black text-brand-red uppercase border border-brand-red rounded px-2 py-0.5 hover:bg-brand-red hover:text-white transition-all"
+                        >
+                          Connect Drive
+                        </button>
+                      )}
+                      {driveToken && (
+                        <div className="flex items-center gap-2">
+                          <span className="flex items-center gap-1 text-[9px] font-black text-emerald-500 uppercase">
+                            <CheckCircle2 size={10} />
+                            Drive Linked
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              localStorage.removeItem('driveToken');
+                              setDriveToken(null);
+                              setErrorMessage(null);
+                            }}
+                            className="text-[9px] font-black text-slate-400 uppercase hover:text-brand-red transition-all"
+                          >
+                            (Disconnect)
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="relative group">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.csv"
+                        onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                        className="hidden"
+                      />
+                      <div
+                        onClick={() => !selectedFile && fileInputRef.current?.click()}
+                        className={`w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl py-6 transition-all ${!selectedFile ? 'hover:border-brand-red hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-slate-400' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'}`}
+                      >
+                        {selectedFile ? (
+                          <div className="flex items-center gap-3 px-4">
+                            {getFileIcon(selectedFile.name.split('.').pop() || '')}
+                            <span className="text-[11px] font-bold truncate max-w-[200px] text-slate-700 dark:text-slate-200">{selectedFile.name}</span>
+                            <button 
+                              type="button" 
+                              onClick={(e) => { 
+                                e.stopPropagation(); 
+                                setSelectedFile(null); 
+                                if(fileInputRef.current) fileInputRef.current.value = ''; 
+                              }}
+                              className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-500 hover:text-brand-red transition-colors"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-[11px] font-black uppercase tracking-widest">Add Local File</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {!selectedFile && (
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">OR Google Drive / External Link</label>
+                      <input
+                        type="url"
+                        value={link}
+                        onChange={(e) => setLink(e.target.value)}
+                        placeholder="https://drive.google.com/..."
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-brand-red transition-all"
+                      />
+                    </div>
+                  )}
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={status === 'loading'}
-                  className="w-full inline-flex items-center justify-center gap-2 bg-brand-red text-white px-8 py-4 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-red-800 disabled:opacity-50 transition-all shadow-lg shadow-brand-red/20"
-                >
-                  {status === 'loading' ? 'Saving...' : (
-                    <>
-                      <Save size={18} />
-                      Save Resource
-                    </>
+                <div className="space-y-4">
+                  {uploadProgress !== null && (
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${uploadProgress}%` }}
+                        className="bg-brand-red h-full"
+                      />
+                    </div>
                   )}
-                </button>
+
+                  <button
+                    type="submit"
+                    disabled={status === 'loading'}
+                    className="w-full inline-flex items-center justify-center gap-2 bg-brand-red text-white px-8 py-4 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-red-800 disabled:opacity-50 transition-all shadow-lg shadow-brand-red/20"
+                  >
+                    {status === 'loading' ? (
+                       <div className="flex items-center gap-2">
+                          <Loader2 className="animate-spin" size={16} />
+                          {uploadProgress !== null ? `Uploading ${Math.round(uploadProgress)}%` : 'Saving...'}
+                       </div>
+                    ) : (
+                      <>
+                        <Save size={18} />
+                        Save Resource
+                      </>
+                    )}
+                  </button>
+                </div>
 
                 {status === 'success' && (
                   <p className="text-emerald-500 text-[10px] font-black text-center uppercase tracking-widest">
                     Saved successfully!
                   </p>
+                )}
+
+                {status === 'error' && (
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 p-4 rounded-2xl space-y-3">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="text-red-500 shrink-0 mt-0.5" size={18} />
+                      <div className="space-y-2">
+                        <p className="text-red-600 dark:text-red-400 text-xs font-bold leading-relaxed">
+                          {errorMessage || "Error adding document. Please try again."}
+                        </p>
+                        {errorMessage?.includes('Google Drive API') && errorMessage?.includes('disabled') && (
+                          <div className="pt-2 flex flex-col gap-2">
+                            <a 
+                              href="https://console.developers.google.com/apis/api/drive.googleapis.com/overview?project=541947031661"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[10px] bg-brand-red text-white px-3 py-2 rounded-lg font-black uppercase tracking-widest text-center hover:bg-red-800 transition-all flex items-center justify-center gap-2"
+                            >
+                              <ExternalLink size={12} />
+                              Enable Drive API Now
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                localStorage.removeItem('driveToken');
+                                setDriveToken(null);
+                                setErrorMessage(null);
+                                setStatus('idle');
+                              }}
+                              className="text-[10px] bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-2 rounded-lg font-black uppercase tracking-widest border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition-all"
+                            >
+                              Skip Drive & Use Local Storage
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 )}
               </form>
             </div>
@@ -331,7 +593,7 @@ export default function InternalPortal() {
             <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
                <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-3">
-                    Existing Resources
+                    Curriculum Library
                     <span className="bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-black">
                       {resources.length}
                     </span>
@@ -340,7 +602,7 @@ export default function InternalPortal() {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                     <input 
                       type="text" 
-                      placeholder="Filter resources..." 
+                      placeholder="Filter library..." 
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-12 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-xs font-bold outline-none focus:ring-2 focus:ring-brand-red/20"
@@ -352,7 +614,7 @@ export default function InternalPortal() {
                  {loadingResources ? (
                    <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-4">
                       <Loader2 className="animate-spin" size={32} />
-                      <p className="text-[10px] font-black uppercase tracking-widest">Loading Library...</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest">Syncing Library...</p>
                    </div>
                  ) : filteredResources.length > 0 ? (
                    <div className="overflow-x-auto">
@@ -360,6 +622,7 @@ export default function InternalPortal() {
                         <thead>
                            <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
                               <th className="px-6 py-4">Chapter & Subject</th>
+                              <th className="px-6 py-4">File Type</th>
                               <th className="px-6 py-4">Target</th>
                               <th className="px-6 py-4 text-right">Actions</th>
                            </tr>
@@ -380,6 +643,14 @@ export default function InternalPortal() {
                                      </div>
                                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
                                         {res.subject}
+                                     </div>
+                                  </td>
+                                  <td className="px-6 py-5">
+                                     <div className="flex items-center gap-2">
+                                        {getFileIcon(res.fileType)}
+                                        <span className="text-[10px] font-black uppercase text-slate-500">
+                                          {res.fileType === 'url' ? 'External Link' : res.fileType}
+                                        </span>
                                      </div>
                                   </td>
                                   <td className="px-6 py-5">
@@ -407,7 +678,7 @@ export default function InternalPortal() {
                                         </button>
                                      </div>
                                   </td>
-                               </motion.tr>
+                                </motion.tr>
                              ))}
                            </AnimatePresence>
                         </tbody>

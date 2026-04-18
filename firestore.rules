@@ -36,7 +36,8 @@ service cloud.firestore {
     // --- Entity Validation ---
     function isValidResource(data) {
       return data.keys().hasAll(['type', 'classLevel', 'subject', 'chapterName', 'instruction', 'link', 'createdAt', 'authorEmail', 'authorUid']) &&
-             data.keys().size() == 9 &&
+             // Allowance for absolute minimum required fields, plus optional fileName/fileType
+             data.keys().size() >= 9 && data.keys().size() <= 11 &&
              data.type in ['school', 'competitive'] &&
              data.classLevel is string && data.classLevel.size() <= 100 &&
              data.subject is string && data.subject.size() <= 200 &&
@@ -45,7 +46,10 @@ service cloud.firestore {
              data.link is string && data.link.size() <= 1000 &&
              data.authorEmail == request.auth.token.email &&
              data.authorUid == request.auth.uid &&
-             data.createdAt == request.time;
+             data.createdAt == request.time &&
+             // Optional fields validation if present
+             (!('fileName' in data) || (data.fileName == null || (data.fileName is string && data.fileName.size() <= 500))) &&
+             (!('fileType' in data) || (data.fileType == null || (data.fileType is string && data.fileType.size() <= 50)));
     }
 
     // --- Resources Collection ---
@@ -57,7 +61,7 @@ service cloud.firestore {
       allow create: if isAdmin() && isValidResource(incoming());
       
       allow update: if isAdmin() && isValidResource(incoming()) && (
-        incoming().diff(existing()).affectedKeys().hasOnly(['subject', 'chapterName', 'instruction', 'link'])
+        incoming().diff(existing()).affectedKeys().hasOnly(['subject', 'chapterName', 'instruction', 'link', 'fileName', 'fileType'])
       );
       
       allow delete: if isAdmin();

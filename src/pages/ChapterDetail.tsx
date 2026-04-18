@@ -15,10 +15,13 @@ import {
   Trophy,
   ExternalLink,
   Loader2,
-  FileBox
+  FileBox,
+  FileSpreadsheet,
+  File as LucideFile,
+  MonitorPlay
 } from 'lucide-react';
 import { db } from '../firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 
 export default function ChapterDetail() {
   const { id, subjectId, chapterId } = useParams();
@@ -39,7 +42,8 @@ export default function ChapterDetail() {
           collection(db, 'resources'),
           where('classLevel', '==', id),
           where('subject', '==', subjectId),
-          where('chapterName', '==', decodedChapterName)
+          where('chapterName', '==', decodedChapterName),
+          orderBy('createdAt', 'desc')
         );
         
         const querySnapshot = await getDocs(q);
@@ -57,6 +61,21 @@ export default function ChapterDetail() {
 
     fetchResources();
   }, [id, subjectId, decodedChapterName]);
+
+  const getFileIcon = (type: string, link: string) => {
+    const isVideo = link.includes('youtube') || link.includes('youtu.be');
+    if (isVideo) return <MonitorPlay className="text-brand-red" size={32} />;
+    
+    switch (type) {
+      case 'pdf': return <FileText className="text-rose-500" size={32} />;
+      case 'doc':
+      case 'docx': return <FileText className="text-blue-500" size={32} />;
+      case 'xls':
+      case 'xlsx':
+      case 'csv': return <FileSpreadsheet className="text-emerald-500" size={32} />;
+      default: return <LucideFile className="text-slate-400" size={32} />;
+    }
+  };
 
   const quizQuestions = [
     {
@@ -103,9 +122,9 @@ export default function ChapterDetail() {
             {/* Chapter Title */}
             <div>
               <div className="flex items-center gap-2 text-xs font-bold text-brand-red uppercase tracking-widest mb-2">
-                <span>Subject: {subjectId}</span>
+                <span className="capitalize">{subjectId} Hub</span>
                 <span className="w-1 h-1 rounded-full bg-slate-300" />
-                <span>Resources Available</span>
+                <span>Chapter Library</span>
               </div>
               <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                 {decodedChapterName}
@@ -157,42 +176,66 @@ export default function ChapterDetail() {
                       </div>
                     ) : resources.length > 0 ? (
                       resources.map((res, i) => (
-                         <div key={res.id} className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                         <motion.div 
+                          key={res.id} 
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.1 }}
+                          className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm group hover:border-brand-red transition-all"
+                         >
                             <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                                <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-4">
-                                     <span className="bg-brand-red/10 text-brand-red px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                     <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-slate-200 dark:border-slate-700 group-hover:bg-brand-red group-hover:text-white group-hover:border-brand-red transition-colors">
                                         Resource {i + 1}
                                      </span>
+                                     {res.fileType && res.fileType !== 'url' && (
+                                       <span className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100">
+                                          {res.fileType} File
+                                       </span>
+                                     )}
                                   </div>
-                                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium mb-6">
+                                  <h4 className="text-xl font-black text-slate-800 dark:text-white mb-3 uppercase tracking-tight">
+                                     {res.fileName || "Study Material"}
+                                  </h4>
+                                  <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium mb-6 text-sm">
                                      {res.instruction}
                                   </p>
-                                  <a 
-                                    href={res.link} 
-                                    target="_blank" 
-                                    rel="noreferrer"
-                                    className="inline-flex items-center gap-2 text-brand-red font-black uppercase text-xs tracking-widest hover:underline"
-                                  >
-                                    Open Resource <ExternalLink size={14} />
-                                  </a>
+                                  <div className="flex items-center gap-4">
+                                    <a 
+                                      href={res.link} 
+                                      target="_blank" 
+                                      rel="noreferrer"
+                                      className="inline-flex items-center gap-2 bg-brand-red text-white pr-4 py-2 pl-2 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-red-800 transition-all shadow-lg shadow-brand-red/10"
+                                    >
+                                      <div className="bg-white/20 p-1.5 rounded-lg">
+                                        {res.link.includes('youtube') || res.link.includes('youtu.be') ? <Play size={12} fill="currentColor" /> : <Download size={12} />}
+                                      </div>
+                                      {res.link.includes('youtube') || res.link.includes('youtu.be') ? 'Watch Lesson' : 'Download File'}
+                                    </a>
+                                    <a 
+                                      href={res.link} 
+                                      target="_blank" 
+                                      rel="noreferrer"
+                                      className="text-slate-400 hover:text-brand-red transition-colors p-2"
+                                      title="Open Link"
+                                    >
+                                      <ExternalLink size={18} />
+                                    </a>
+                                  </div>
                                </div>
-                               <div className="w-full md:w-32 aspect-square bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-slate-300">
-                                  {res.link.includes('youtube') || res.link.includes('youtu.be') ? (
-                                    <Play size={40} className="text-brand-red/40" />
-                                  ) : (
-                                    <FileText size={40} className="text-brand-red/40" />
-                                  )}
+                               <div className="w-full md:w-32 aspect-square bg-slate-50 dark:bg-slate-800 rounded-[2rem] flex items-center justify-center border border-slate-100 dark:border-slate-800 shadow-inner group-hover:rotate-3 transition-transform">
+                                  {getFileIcon(res.fileType, res.link)}
                                </div>
                             </div>
-                         </div>
+                         </motion.div>
                       ))
                     ) : (
                       <div className="bg-white dark:bg-slate-900 p-12 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-center">
                         <FileBox className="mx-auto text-slate-200 mb-4" size={48} />
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">No Files Found</h3>
-                        <p className="text-slate-500 text-sm max-w-sm mx-auto">
-                           No resources have been linked to this chapter yet.
+                        <p className="text-slate-500 text-sm max-w-sm mx-auto font-medium">
+                           No resources have been linked to this chapter yet. Our team is working on uploading the best content for you.
                         </p>
                       </div>
                     )}
@@ -210,8 +253,8 @@ export default function ChapterDetail() {
                     {quizScore === null ? (
                       <div className="space-y-8">
                         <div className="flex justify-between items-center">
-                          <h2 className="text-2xl font-bold">Practice Quiz</h2>
-                          <span className="text-sm font-bold text-slate-400">Question {quizStep + 1} of {quizQuestions.length}</span>
+                          <h2 className="text-2xl font-black uppercase tracking-tight">Practice Quiz</h2>
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Question {quizStep + 1} of {quizQuestions.length}</span>
                         </div>
                         
                         <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full">
@@ -222,7 +265,7 @@ export default function ChapterDetail() {
                         </div>
 
                         <div className="space-y-6">
-                          <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                          <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-tight">
                             {quizQuestions[quizStep].question}
                           </h3>
                           <div className="grid grid-cols-1 gap-4">
@@ -246,14 +289,14 @@ export default function ChapterDetail() {
                           <button 
                             disabled={quizStep === 0}
                             onClick={() => setQuizStep(quizStep - 1)}
-                            className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-slate-500 disabled:opacity-30"
+                            className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-slate-500 disabled:opacity-30 uppercase text-xs tracking-widest"
                           >
                             <ChevronLeft size={20} />
                             Previous
                           </button>
                           <button 
                             onClick={handleQuizSubmit}
-                            className="bg-brand-red text-white px-10 py-3 rounded-xl font-bold shadow-lg shadow-brand-red/25 flex items-center gap-2"
+                            className="bg-brand-red text-white px-10 py-3 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-brand-red/25 flex items-center gap-2 hover:bg-red-800 transition-all"
                           >
                             {quizStep === quizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'}
                             <ChevronRight size={20} />
@@ -262,16 +305,16 @@ export default function ChapterDetail() {
                       </div>
                     ) : (
                       <div className="text-center py-12 space-y-6">
-                        <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-8">
+                        <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
                           <CheckCircle2 size={48} />
                         </div>
-                        <h2 className="text-3xl font-black">Quiz Completed!</h2>
-                        <p className="text-slate-500">Great job! You've successfully completed the practice quiz for this chapter.</p>
-                        <div className="text-5xl font-black text-brand-red">{quizScore}%</div>
+                        <h2 className="text-3xl font-black uppercase tracking-tight">Quiz Completed!</h2>
+                        <p className="text-slate-500 font-medium">Great job! You've successfully completed the practice quiz for this chapter.</p>
+                        <div className="text-6xl font-black text-brand-red tracking-tighter">{quizScore}%</div>
                         <div className="flex justify-center gap-4 pt-8">
                           <button 
                             onClick={() => { setQuizScore(null); setQuizStep(0); }}
-                            className="px-8 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl font-bold text-slate-600 dark:text-slate-400"
+                            className="px-8 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl font-black uppercase text-xs tracking-widest text-slate-600 dark:text-slate-400 hover:bg-slate-200 transition-all"
                           >
                             Retake Quiz
                           </button>
@@ -286,15 +329,37 @@ export default function ChapterDetail() {
 
           {/* Sidebar */}
           <div className="space-y-8">
-             <div className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/20 rounded-full -mr-12 -mt-12" />
-              <h3 className="text-xl font-bold mb-4 relative z-10">Study Group</h3>
-              <p className="text-slate-400 text-sm mb-6 relative z-10">
-                Join 1,200+ other students studying this subject.
-              </p>
-              <button className="w-full py-3 bg-white text-slate-900 rounded-xl font-bold text-sm relative z-10">
-                Join Telegram Group
-              </button>
+             <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-red/20 rounded-full -mr-16 -mt-16 blur-2xl" />
+              <div className="relative z-10">
+                <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mb-6">
+                  <MessageSquare size={24} className="text-brand-accent" />
+                </div>
+                <h3 className="text-xl font-black uppercase tracking-wider mb-4">Study Circle</h3>
+                <p className="text-slate-400 text-sm mb-8 font-medium leading-relaxed">
+                  Join a community of 1,200+ students. Share notes, discuss concepts, and grow together.
+                </p>
+                <button className="w-full py-4 bg-brand-red text-white rounded-xl font-black uppercase text-xs tracking-widest hover:bg-red-800 transition-all shadow-lg shadow-brand-red/20 flex items-center justify-center gap-2">
+                  <Send size={16} />
+                  Join Telegram
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-800 shadow-xl">
+               <h3 className="text-lg font-black uppercase tracking-wider mb-6 text-slate-900 dark:text-white">Quick Stats</h3>
+               <div className="space-y-4">
+                  {[
+                    { label: 'Completion Rate', value: '78%' },
+                    { label: 'Avg Quiz Score', value: '82' },
+                    { label: 'Active Students', value: '1.2k' },
+                  ].map((stat, i) => (
+                    <div key={i} className="flex items-center justify-between py-3 border-b border-slate-50 dark:border-slate-800 last:border-0">
+                       <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{stat.label}</span>
+                       <span className="text-sm font-black text-brand-red">{stat.value}</span>
+                    </div>
+                  ))}
+               </div>
             </div>
           </div>
         </div>
