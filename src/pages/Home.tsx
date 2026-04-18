@@ -1,4 +1,5 @@
 import Hero from '../components/Hero';
+import AnnouncementSection from '../components/AnnouncementSection';
 import { motion } from 'motion/react';
 import { 
   ArrowRight, 
@@ -8,6 +9,7 @@ import {
   Users,
   Star,
   CheckCircle2,
+  Play,
   DraftingCompass,
   Stethoscope,
   Award,
@@ -43,9 +45,16 @@ import { Link } from 'react-router-dom';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-white relative">
       <Hero />
       
+      {/* Decorative Background Elements */}
+      <div className="absolute top-[600px] left-0 w-full h-[1500px] pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-red/5 rounded-full blur-3xl -mr-[400px]" />
+        <div className="absolute top-[400px] left-0 w-[600px] h-[600px] bg-brand-accent/5 rounded-full blur-3xl -ml-[300px]" />
+        <div className="absolute bottom-0 right-0 w-[1000px] h-[1000px] bg-brand-red/5 rounded-full blur-3xl -mr-[500px]" />
+      </div>
+
       {/* Main Selection Section */}
       <section className="py-20 relative overflow-hidden bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -62,24 +71,32 @@ export default function Home() {
             {/* School Education Card */}
             <motion.div 
               whileHover={{ y: -10 }}
-              className="group relative bg-brand-red text-white rounded-[2rem] shadow-2xl overflow-hidden"
+              className="group relative bg-brand-red text-white rounded-[2.5rem] shadow-2xl overflow-hidden min-h-[450px]"
             >
-              <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-24 -mt-24 transition-all group-hover:scale-110" />
-              <div className="p-8 md:p-12">
-                <div className="bg-white/20 p-4 rounded-2xl w-fit mb-6 border border-white/20">
+              <div className="absolute inset-0 opacity-20 transition-transform duration-700 group-hover:scale-110">
+                <img 
+                   src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2022&auto=format&fit=crop" 
+                   alt="School" 
+                   className="w-full h-full object-cover"
+                   referrerPolicy="no-referrer"
+                />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-red via-brand-red/80 to-transparent" />
+              <div className="relative p-10 md:p-14 h-full flex flex-col justify-end">
+                <div className="bg-white/20 backdrop-blur-md p-4 rounded-2xl w-fit mb-6 border border-white/20">
                   <BookOpen className="text-brand-accent" size={40} />
                 </div>
-                <h3 className="text-2xl md:text-3xl font-black mb-4 uppercase">
-                  School Education
+                <h3 className="text-3xl md:text-4xl font-black mb-4 uppercase leading-tight">
+                  School <span className="text-brand-accent italic">Education</span>
                 </h3>
-                <p className="text-white/80 mb-8 font-medium leading-relaxed">
-                  Comprehensive study materials, video lessons, and practice tests for students from Class 1 to 10. Master your school curriculum with ease.
+                <p className="text-white/80 mb-8 font-medium leading-relaxed max-w-sm">
+                  Comprehensive study materials, video lessons, and practice tests for students from Class 1 to 10.
                 </p>
                 <Link 
                   to="/school-education" 
-                  className="inline-flex items-center gap-2 bg-brand-accent text-brand-red px-8 py-4 rounded-xl font-black uppercase tracking-wider hover:bg-white transition-all shadow-lg"
+                  className="inline-flex items-center gap-2 bg-brand-accent text-brand-red px-10 py-5 rounded-2xl font-black uppercase tracking-wider hover:bg-white hover:scale-105 transition-all shadow-xl w-fit"
                 >
-                  Explore Class 1-10
+                  Explore Now
                   <ArrowRight size={20} />
                 </Link>
               </div>
@@ -88,24 +105,32 @@ export default function Home() {
             {/* Competitive Exams Card */}
             <motion.div 
               whileHover={{ y: -10 }}
-              className="group relative bg-brand-accent text-brand-red rounded-[2rem] shadow-2xl overflow-hidden"
+              className="group relative bg-brand-accent text-brand-red rounded-[2.5rem] shadow-2xl overflow-hidden min-h-[450px]"
             >
-              <div className="absolute top-0 right-0 w-48 h-48 bg-brand-red/10 rounded-full -mr-24 -mt-24 transition-all group-hover:scale-110" />
-              <div className="p-8 md:p-12">
-                <div className="bg-brand-red/10 p-4 rounded-2xl w-fit mb-6 border border-brand-red/10">
+              <div className="absolute inset-0 opacity-20 transition-transform duration-700 group-hover:scale-110">
+                <img 
+                   src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070&auto=format&fit=crop" 
+                   alt="Exams" 
+                   className="w-full h-full object-cover"
+                   referrerPolicy="no-referrer"
+                />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-accent via-brand-accent/80 to-transparent" />
+              <div className="relative p-10 md:p-14 h-full flex flex-col justify-end">
+                <div className="bg-brand-red/10 backdrop-blur-md p-4 rounded-2xl w-fit mb-6 border border-brand-red/10">
                   <Trophy className="text-brand-red" size={40} />
                 </div>
-                <h3 className="text-2xl md:text-3xl font-black mb-4 uppercase">
-                  Competitive Exams
+                <h3 className="text-3xl md:text-4xl font-black mb-4 uppercase leading-tight">
+                  Competitive <span className="text-brand-red italic">Exams</span>
                 </h3>
-                <p className="text-brand-red/80 mb-8 font-medium leading-relaxed">
-                  Specialized coaching and resources for JEE, NEET, Olympiads, and NTSE. Push your boundaries and achieve your dream career.
+                <p className="text-brand-red/80 mb-8 font-medium leading-relaxed max-w-sm">
+                  Specialized coaching and resources for JEE, NEET, Olympiads, and NTSE. Push your boundaries.
                 </p>
                 <Link 
                   to="/competitive-exams" 
-                  className="inline-flex items-center gap-2 bg-brand-red text-white px-8 py-4 rounded-xl font-black uppercase tracking-wider hover:bg-white hover:text-brand-red transition-all shadow-lg"
+                  className="inline-flex items-center gap-2 bg-brand-red text-white px-10 py-5 rounded-2xl font-black uppercase tracking-wider hover:bg-white hover:text-brand-red hover:scale-105 transition-all shadow-xl w-fit"
                 >
-                  Explore Competitive
+                  Explore Now
                   <ArrowRight size={20} />
                 </Link>
               </div>
@@ -138,27 +163,31 @@ export default function Home() {
             ].map((exam, idx) => (
               <motion.div 
                 key={idx}
-                whileHover={{ y: -5 }}
-                style={{ borderColor: exam.color }}
-                className="bg-white p-8 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border-2 border-b-8 flex flex-col items-center text-center group transition-all"
+                whileHover={{ y: -8, scale: 1.02 }}
+                style={{ borderColor: exam.color, backgroundColor: `${exam.color}05` }}
+                className="bg-white p-10 shadow-[0_4px_25px_rgba(0,0,0,0.05)] border-2 border-b-[10px] flex flex-col items-center text-center group transition-all rounded-3xl"
               >
                 <div 
-                  className="w-14 h-14 rounded-full flex items-center justify-center mb-6 transition-colors"
-                  style={{ backgroundColor: `${exam.color}10` }}
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all group-hover:rotate-12 group-hover:scale-110 shadow-lg shadow-black/5 bg-white"
                 >
-                  <exam.icon style={{ color: exam.color }} size={24} />
+                  <exam.icon style={{ color: exam.color }} size={28} />
                 </div>
-                <h3 className="text-lg font-black text-slate-800 mb-2 uppercase tracking-tight">
+                <h3 className="text-xl font-black text-slate-800 mb-2 uppercase tracking-tight">
                   {exam.title}
                 </h3>
-                <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                <p className="text-sm text-slate-500 font-medium leading-relaxed">
                   {exam.desc}
                 </p>
+                <div className="mt-6 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: exam.color }}>
+                  Access portal <ArrowRight size={12} />
+                </div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
+
+      <AnnouncementSection />
 
       {/* Our Services Section */}
       <section className="py-24 bg-[#f8f9fa]">
@@ -208,6 +237,96 @@ export default function Home() {
                 </h4>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us Section */}
+      <section className="py-24 bg-white dark:bg-slate-900 border-t border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-black text-brand-red mb-4 uppercase tracking-tight">Our <span className="text-brand-accent">Impact</span></h2>
+            <p className="text-slate-500 font-medium">Measuring success through the achievements of our students.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {[
+              { label: "Students Enrolled", value: "50,000+", icon: Users, color: "#E31E24" },
+              { label: "Expert Educators", value: "500+", icon: GraduationCap, color: "#FFC107" },
+              { label: "Course Materials", value: "10,000+", icon: BookOpen, color: "#1976D2" },
+              { label: "Success Rate", value: "98%", icon: Star, color: "#2E7D32" },
+            ].map((stat, idx) => (
+              <motion.div
+                key={idx}
+                whileHover={{ y: -10 }}
+                className="bg-white p-8 rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.04)] border border-slate-50 text-center flex flex-col items-center group overflow-hidden relative"
+              >
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-slate-200 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+                <div 
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-black/5"
+                  style={{ backgroundColor: `${stat.color}15` }}
+                >
+                  <stat.icon style={{ color: stat.color }} size={32} />
+                </div>
+                <div className="text-4xl font-black text-slate-900 mb-2">{stat.value}</div>
+                <div className="text-xs font-black text-slate-400 uppercase tracking-widest">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Video / Journey Section */}
+      <section className="py-24 bg-brand-red relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]" />
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            <div className="lg:w-1/2 text-white">
+              <h2 className="text-4xl md:text-6xl font-black mb-8 uppercase leading-[0.9] tracking-tighter">
+                Transforming Your <span className="text-brand-accent italic">Educational</span> Journey
+              </h2>
+              <p className="text-white/80 text-lg font-medium mb-10 leading-relaxed max-w-xl">
+                We believe that every child has a unique spark. Our digital platform is designed to nurture that spark into a flame of knowledge.
+              </p>
+              <div className="space-y-6">
+                {[
+                  "Interactive Learning Modules",
+                  "Personalized Progress Tracking",
+                  "24/7 Expert Support Access"
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-4 group">
+                    <div className="w-10 h-10 rounded-full bg-brand-accent/20 flex items-center justify-center group-hover:bg-brand-accent transition-colors">
+                      <CheckCircle2 className="text-brand-accent group-hover:text-brand-red" size={20} />
+                    </div>
+                    <span className="text-sm font-black uppercase tracking-wider">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="lg:w-1/2 w-full">
+              <div className="relative group rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10 aspect-video">
+                <img 
+                  src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop" 
+                  alt="Learning Journey"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                  <motion.button 
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="w-24 h-24 bg-brand-accent text-brand-red rounded-full flex items-center justify-center shadow-2xl hover:bg-white transition-colors"
+                  >
+                    <Play size={32} className="fill-current ml-2" />
+                  </motion.button>
+                </div>
+                <div className="absolute bottom-6 left-6 right-6 p-6 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20">
+                  <div className="text-white font-black uppercase tracking-widest text-xs mb-1">Featured Video</div>
+                  <div className="text-white/90 text-sm font-bold">Watch how 24Lernova is changing lives daily.</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

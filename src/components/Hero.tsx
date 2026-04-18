@@ -46,27 +46,35 @@ export default function Hero() {
             className="w-full h-full object-cover opacity-60"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-brand-red/80 to-transparent flex items-center">
+            <div className="absolute inset-0 bg-gradient-to-r from-brand-red via-brand-red/60 to-transparent flex items-center">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
               <motion.div
-                initial={{ opacity: 0, x: -50 }}
-                animate={index === currentSlide ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.8 }}
-                className="max-w-2xl text-white"
+                initial={{ opacity: 0, y: 30 }}
+                animate={index === currentSlide ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="max-w-2xl text-white pt-10"
               >
-                <h2 className="text-3xl md:text-5xl font-black mb-4 leading-tight uppercase tracking-tight">
-                  {slide.title}
+                <div className="inline-flex items-center gap-2 mb-4">
+                  <span className="w-12 h-1 bg-brand-accent rounded-full" />
+                  <span className="text-brand-accent font-black tracking-[0.2em] uppercase text-xs">Excellence in Learning</span>
+                </div>
+                <h2 className="text-4xl md:text-7xl font-black mb-6 leading-[0.9] uppercase tracking-tight">
+                  {slide.title.split(' ').map((word, i) => (
+                    <span key={i} className={i % 2 === 1 ? 'text-brand-accent' : ''}>{word}{' '}</span>
+                  ))}
                 </h2>
-                <p className="text-lg md:text-xl text-white/80 font-medium mb-8">
+                <p className="text-lg md:text-xl text-white/90 font-medium mb-10 max-w-lg leading-relaxed">
                   {slide.subtitle}
                 </p>
-                <div className="flex gap-4">
-                  <button className="bg-brand-accent text-brand-red px-8 py-3 rounded font-bold uppercase text-sm hover:bg-white transition-all shadow-lg">
-                    Read More
+                <div className="flex flex-wrap gap-4">
+                  <button className="bg-brand-accent text-brand-red px-10 py-4 rounded-full font-black uppercase text-xs tracking-widest hover:bg-white hover:scale-105 transition-all shadow-[0_10px_30px_rgba(255,193,7,0.3)]">
+                    Start Learning
                   </button>
-                  <button className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-3 rounded font-bold uppercase text-sm hover:bg-white/20 transition-all flex items-center gap-2">
-                    <Play size={16} />
-                    Watch Video
+                  <button className="bg-white/10 backdrop-blur-xl border border-white/20 text-white px-10 py-4 rounded-full font-black uppercase text-xs tracking-widest hover:bg-white/20 hover:scale-105 transition-all flex items-center gap-3">
+                    <div className="w-6 h-6 bg-brand-accent rounded-full flex items-center justify-center">
+                      <Play size={10} className="text-brand-red fill-current ml-0.5" />
+                    </div>
+                    Watch Journey
                   </button>
                 </div>
               </motion.div>
