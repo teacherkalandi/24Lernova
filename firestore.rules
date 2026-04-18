@@ -1,0 +1,69 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net: Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      // For this app, we consider the specific admin email as admin
+      return isSignedIn() && (
+        request.auth.token.email == "teacherkalandi@gmail.com" && 
+        request.auth.token.email_verified == true
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity Validation ---
+    function isValidResource(data) {
+      return data.keys().hasAll(['type', 'classLevel', 'subject', 'chapterName', 'instruction', 'link', 'createdAt', 'authorEmail', 'authorUid']) &&
+             data.keys().size() == 9 &&
+             data.type in ['school', 'competitive'] &&
+             data.classLevel is string && data.classLevel.size() <= 100 &&
+             data.subject is string && data.subject.size() <= 200 &&
+             data.chapterName is string && data.chapterName.size() <= 300 &&
+             data.instruction is string && data.instruction.size() <= 2000 &&
+             data.link is string && data.link.size() <= 1000 &&
+             data.authorEmail == request.auth.token.email &&
+             data.authorUid == request.auth.uid &&
+             data.createdAt == request.time;
+    }
+
+    // --- Resources Collection ---
+    match /resources/{resourceId} {
+      // Anyone can read the resources for the public site
+      allow get, list: if true;
+      
+      // Only the admin can upload or modify resources
+      allow create: if isAdmin() && isValidResource(incoming());
+      
+      allow update: if isAdmin() && isValidResource(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['subject', 'chapterName', 'instruction', 'link'])
+      );
+      
+      allow delete: if isAdmin();
+    }
+  }
+}

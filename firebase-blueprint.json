@@ -1,0 +1,49 @@
+{
+  "entities": {
+    "Resource": {
+      "title": "Learning Resource",
+      "description": "Educational content uploaded via the internal portal",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["school", "competitive"],
+          "description": "Category of the resource"
+        },
+        "classLevel": {
+          "type": "string",
+          "description": "Class level (1-10) or exam name (JEE, NEET, etc.)"
+        },
+        "subject": {
+          "type": "string",
+          "description": "The subject name"
+        },
+        "chapterName": {
+          "type": "string",
+          "description": "Name of the chapter"
+        },
+        "instruction": {
+          "type": "string",
+          "description": "Instructions for the student"
+        },
+        "link": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the external resource"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the resource was created"
+        }
+      },
+      "required": ["type", "classLevel", "subject", "chapterName", "instruction", "link", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/resources/{resourceId}": {
+      "schema": "Resource",
+      "description": "Storage for uploaded educational resources"
+    }
+  }
+}
