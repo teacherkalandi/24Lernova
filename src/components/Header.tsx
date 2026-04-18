@@ -168,20 +168,6 @@ export default function Header() {
               ))}
             </nav>
 
-            {/* Search */}
-            <div className="hidden md:flex items-center h-full">
-              <div className="relative">
-                <input 
-                  type="text" 
-                  placeholder="Search..." 
-                  className="bg-white/10 text-white placeholder:text-white/50 text-xs px-3 py-1.5 rounded-l border border-white/20 outline-none focus:bg-white/20 w-32 lg:w-48"
-                />
-                <button className="bg-brand-accent text-white px-3 py-1.5 rounded-r border border-brand-accent hover:bg-red-600 transition-colors">
-                  <Search size={14} />
-                </button>
-              </div>
-            </div>
-
             {/* Mobile Menu Button */}
             <div className="lg:hidden flex items-center justify-between w-full">
               <span className="text-white font-bold text-xs uppercase tracking-widest">Menu</span>
@@ -192,6 +178,7 @@ export default function Header() {
                 {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
             </div>
+
           </div>
         </div>
       </div>

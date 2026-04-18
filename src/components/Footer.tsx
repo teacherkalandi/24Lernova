@@ -126,7 +126,7 @@ export default function Footer() {
             <Link to="/terms" className="hover:text-white">Terms & Conditions</Link>
             <Link to="/sitemap" className="hover:text-white">Sitemap</Link>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <span>Visitor Count:</span>
             <span className="bg-slate-800 px-2 py-1 rounded font-mono text-white">45,678</span>
           </div>
